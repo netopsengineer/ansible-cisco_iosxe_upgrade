@@ -1,0 +1,55 @@
+---
+# tasks file for ansible-cisco_ios_upgrade
+#
+# ██╗ ██████╗ ███████╗     ██╗  ██╗███████╗
+# ██║██╔═══██╗██╔════╝     ╚██╗██╔╝██╔════╝
+# ██║██║   ██║███████╗█████╗╚███╔╝ █████╗  
+# ██║██║   ██║╚════██║╚════╝██╔██╗ ██╔══╝  
+# ██║╚██████╔╝███████║     ██╔╝ ██╗███████╗
+# ╚═╝ ╚═════╝ ╚══════╝     ╚═╝  ╚═╝╚══════╝
+
+- name: ios-xe | Set variable when using tag 'booting'
+  ansible.builtin.set_fact:
+    ios_next_step: booting
+    using_tag: True
+  tags: 
+    - booting
+
+- name: ios-xe | Set variable when using tag 'verifying'
+  ansible.builtin.set_fact:
+    ios_next_step: verifying
+    using_tag: True
+  tags: 
+    - verifying
+
+- name: ios-xe | Set variable when using tag 'staging'
+  ansible.builtin.set_fact:
+    ios_next_step: staging
+    using_tag: True
+  tags: 
+    - staging
+
+- name: ios-xe | Set variable when using tag 'cleaning'
+  ansible.builtin.set_fact:
+    ios_next_step: cleaning
+    using_tag: True
+  tags: 
+    - cleaning
+
+- name: ios-xe | Set variable when using tag 'facts'
+  ansible.builtin.set_fact:
+    ios_next_step: facts
+    using_tag: True
+  tags: 
+    - facts
+
+- name: ios-xe | Set variable when not using any tag'
+  ansible.builtin.set_fact:
+    ios_next_step: facts
+    using_tag: False
+
+
+#------------------------------------------------------------------------------
+# Gathering additional facts from remote device
+#------------------------------------------------------------------------------
+- include: "{{ ansible_net_iostype|upper }}/{{ ansible_net_iostype|lower}}_1_facts.yml"

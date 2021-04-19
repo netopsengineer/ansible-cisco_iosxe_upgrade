@@ -1,0 +1,102 @@
+---
+# tasks file for ansible-cisco_ios_upgrade
+#
+# ██╗ ██████╗ ███████╗     ██╗  ██╗███████╗        ██╗        ███████╗ █████╗  ██████╗████████╗███████╗
+# ██║██╔═══██╗██╔════╝     ╚██╗██╔╝██╔════╝       ███║        ██╔════╝██╔══██╗██╔════╝╚══██╔══╝██╔════╝
+# ██║██║   ██║███████╗█████╗╚███╔╝ █████╗         ╚██║        █████╗  ███████║██║        ██║   ███████╗
+# ██║██║   ██║╚════██║╚════╝██╔██╗ ██╔══╝          ██║        ██╔══╝  ██╔══██║██║        ██║   ╚════██║
+# ██║╚██████╔╝███████║     ██╔╝ ██╗███████╗███████╗██║███████╗██║     ██║  ██║╚██████╗   ██║   ███████║
+# ╚═╝ ╚═════╝ ╚══════╝     ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝╚══════╝╚═╝     ╚═╝  ╚═╝ ╚═════╝   ╚═╝   ╚══════╝
+
+#
+- name: ios-xe_1_facts | Define section
+  ansible.builtin.set_fact:
+    section: "ios_1_facts"
+  tags:
+    - facts
+    - cleaning
+    - staging
+    - verifying
+    - booting
+
+#------------------------------------------------------------------------------
+# Extract the Cisco model variant name from the variable ansible_net_model
+# (which was created after gathering hardware facts).
+#------------------------------------------------------------------------------
+- name: ios-xe_1_facts | Determine Cisco model variant
+  ansible.builtin.set_fact:
+    model_variant: "{{ ansible_net_model 
+      | filter_model(
+        True 
+          if (debug_filter is defined and debug_filter) 
+          else False ) }}"
+  tags:
+    - facts
+    - cleaning
+    - staging
+    - verifying
+    - booting
+
+#------------------------------------------------------------------------------
+# Asserts given expressions are true.
+# Validate the newly created variable model_variant
+#------------------------------------------------------------------------------
+- name: ios-xe_1_facts | Validate Cisco model variant
+  ansible.builtin.assert:
+    that:
+      - model_variant is defined
+      - model_variant|length > 0
+    fail_msg: "Unable to collect the Cisco model variant from {{ ansible_net_model }}"
+    quiet: true
+  tags:
+    - facts
+    - cleaning
+    - staging
+    - verifying
+    - booting
+
+#------------------------------------------------------------------------------
+# Load the dependent model variant file
+# Required keynames are :
+#   model_supported       <Boolean>
+#   required_ios_binary   <string>
+#   required_ios_md5      <string>
+#   required_ios_sha512   <string>
+#   required_ios_size_kb  <integer>
+#   required_ios_version  <string>
+#   use_signature         <string>
+#------------------------------------------------------------------------------
+- name: ios-xe_1_facts | Load dependent variables
+  include_vars: "{{lookup('first_found', params)}}"
+  vars:
+    params:
+      files:
+        - "{{ ansible_net_iostype|upper }}/{{ model_variant }}/{{ ansible_net_model }}.yml"
+        - "{{ ansible_net_iostype|upper }}/{{ model_variant }}/{{ model_variant }}.yml"
+        - unknown.yml
+      paths:
+        - "vars"
+  tags:
+    - facts
+    - cleaning
+    - staging
+    - verifying
+    - booting
+
+#------------------------------------------------------------------------------
+# Asserts given expressions are true.
+# If the "model_supported" is set with the boolean TRUE then continue
+# else don't progress any other tasks and set for the remote device as failure.
+#------------------------------------------------------------------------------
+- name: ios-xe_1_facts | Model is supported
+  ansible.builtin.assert:
+    that:
+      - model_supported
+    fail_msg: "The model variant is not supported."
+    quiet: true
+  tags:
+    - facts
+    - cleaning
+    - staging
+    - verifying
+    - booting

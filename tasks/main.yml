@@ -1,0 +1,90 @@
+---
+# tasks file for ansible-cisco_iosxe_upgrade
+#
+#  ████████╗ █████╗ ███████╗██╗  ██╗
+#  ╚══██╔══╝██╔══██╗██╔════╝██║ ██╔╝
+#     ██║   ███████║███████╗█████╔╝ 
+#     ██║   ██╔══██║╚════██║██╔═██╗ 
+#     ██║   ██║  ██║███████║██║  ██╗
+#     ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
+#
+
+- name: main | Gathering Facts
+  ansible.builtin.ios_facts:
+    gather_subset: hardware
+  tags:
+    - backup
+    - facts
+    - cleaning
+    - staging
+    - verifying
+    - installing
+    - booting
+
+ name: main | Set variable when using tag 'booting'
+  ansible.builtin.set_fact:
+    ios_next_step: booting
+    using_tag: True
+  tags: 
+    - booting
+
+- name: main | Set variable when using tag 'installing'
+  ansible.builtin.set_fact:
+    ios_next_step: installing
+    using_tag: True
+  tags: 
+    - installing
+
+- name: main | Set variable when using tag 'verifying'
+  ansible.builtin.set_fact:
+    ios_next_step: verifying
+    using_tag: True
+  tags: 
+    - verifying
+
+- name: main | Set variable when using tag 'staging'
+  ansible.builtin.set_fact:
+    ios_next_step: staging
+    using_tag: True
+  tags: 
+    - staging
+
+- name: main | Set variable when using tag 'cleaning'
+  ansible.builtin.set_fact:
+    ios_next_step: cleaning
+    using_tag: True
+  tags: 
+    - cleaning
+
+- name: main | Set variable when using tag 'facts'
+  ansible.builtin.set_fact:
+    ios_next_step: facts
+    using_tag: True
+  tags: 
+    - facts
+
+- name: main | Set variable when using tag 'backup'
+  ansible.builtin.set_fact:
+    ios_next_step: backup
+    using_tag: True
+  tags: 
+    - backup
+
+- name: main | Set variable when not using any tag'
+  ansible.builtin.set_fact:
+    ios_next_step: facts
+    using_tag: False
+
+#------------------------------------------------------------------------------
+# Load the task if the device to backup device configuration.
+#------------------------------------------------------------------------------
+- include: 'backup.yml'
+  when:
+    - backup
+
+#------------------------------------------------------------------------------
+# Load the task if the device is running the Cisco IOS-XE software.
+#------------------------------------------------------------------------------
+- include: '{{ ansible_net_iostype | lower }}.yml'
+  when:
+    - ansible_net_iostype|lower == 'ios-xe'
